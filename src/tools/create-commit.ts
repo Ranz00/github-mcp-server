@@ -7,7 +7,7 @@ export const createCommitTool: McpTool = {
         name: "create_commit",
         title: "Crear commit",
         description:
-            "Crea o actualiza un archivo en un repositorio y lo commitea en una rama. Usala cuando el usuario pida guardar contenido en GitHub. path no puede ser absoluto ni contener ... Si no se indica branch, usa la rama principal.",
+            "Crea o actualiza un archivo en un repositorio y lo commitea en una rama. Usala cuando el usuario pida guardar contenido en GitHub. path no puede ser absoluto ni contener `..`. Si no se indica branch, usa la rama principal.",
     },
     schema: CreateCommitSchema,
     async handler(input, context) {

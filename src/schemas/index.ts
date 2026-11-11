@@ -15,7 +15,7 @@ export const ListRepositoriesSchema = z.object({
     sort: z
         .enum(["created", "updated", "pushed", "full_name"])
         .default("updated")
-        .describe("Orden de los resultados"),
+        .describe("Orden: created, updated, pushed o full_name"),
     per_page: z
         .number()
         .int()
@@ -33,7 +33,7 @@ export const CreateIssueSchema = z.object({
     repo: z.string().min(1).describe("Nombre del repositorio"),
     title: z.string().trim().min(3).max(256).describe("Título del issue"),
     body: z.string().max(65_000).optional().describe("Descripción del issue"),
-    labels: z.array(z.string()).max(10).optional().describe("Etiquetas del issue"),
+    labels: z.array(z.string()).max(10).optional().describe("Etiquetas a aplicar (máximo 10)"),
 });
 
 // Crear un commit con un archivo.
@@ -79,15 +79,15 @@ export const ListIssuesSchema = z.object({
     state: z
         .enum(["open", "closed", "all"])
         .default("open")
-        .describe("Estado de los issues"),
-    labels: z.array(z.string()).max(10).optional().describe("Filtrar por etiquetas"),
+        .describe("Estado: open, closed o all"),
+    labels: z.array(z.string()).max(10).optional().describe("Etiquetas para filtrar"),
     per_page: z
         .number()
         .int()
         .min(1)
         .max(100)
         .default(30)
-        .describe("Cantidad por página"),
+        .describe("Cantidad por página (1-100)"),
     page: z.number().int().min(1).default(1).describe("Número de página"),
 });
 

@@ -9,7 +9,7 @@ Lista los repositorios del usuario autenticado. Usala cuando el usuario pida ver
 | Parámetro | Tipo | Obligatorio | Descripción |
 |---|---|---|---|
 | `type` | string | no | Qué repos listar: all, owner, public, private o member |
-| `sort` | string | no | Orden de los resultados |
+| `sort` | string | no | Orden: created, updated, pushed o full_name |
 | `per_page` | integer | no | Cantidad de repos por página (1-100) |
 
 ## `create_issue`
@@ -22,7 +22,7 @@ Crea un issue en un repositorio existente. Usala cuando el usuario pida registra
 | `repo` | string | sí | Nombre del repositorio |
 | `title` | string | sí | Título del issue |
 | `body` | string | no | Descripción del issue |
-| `labels` | array | no | Etiquetas del issue |
+| `labels` | array | no | Etiquetas a aplicar (máximo 10) |
 
 ## `create_repository`
 
@@ -36,7 +36,7 @@ Crea un repositorio nuevo en la cuenta autenticada. Usala solo cuando el usuario
 
 ## `create_commit`
 
-Crea o actualiza un archivo en un repositorio y lo commitea en una rama. Usala cuando el usuario pida guardar contenido en GitHub. path no puede ser absoluto ni contener ... Si no se indica branch, usa la rama principal.
+Crea o actualiza un archivo en un repositorio y lo commitea en una rama. Usala cuando el usuario pida guardar contenido en GitHub. path no puede ser absoluto ni contener `..`. Si no se indica branch, usa la rama principal.
 
 | Parámetro | Tipo | Obligatorio | Descripción |
 |---|---|---|---|
@@ -55,9 +55,9 @@ Lista issues de un repositorio. Usala para consultar bugs o tareas. No devuelve 
 |---|---|---|---|
 | `owner` | string | sí | Dueño del repositorio |
 | `repo` | string | sí | Nombre del repositorio |
-| `state` | string | no | Estado de los issues |
-| `labels` | array | no | Filtrar por etiquetas |
-| `per_page` | integer | no | Cantidad por página |
+| `state` | string | no | Estado: open, closed o all |
+| `labels` | array | no | Etiquetas para filtrar |
+| `per_page` | integer | no | Cantidad por página (1-100) |
 | `page` | integer | no | Número de página |
 
 ## `list_commits`
