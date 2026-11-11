@@ -6,6 +6,10 @@ import { createRepositoryTool } from "../src/tools/create-repository";
 import { listIssuesTool } from "../src/tools/list-issues";
 import { listRepositoriesTool } from "../src/tools/list-repositories";
 import type { GitHubOperations, ToolContext } from "../src/types";
+import { addCommentTool } from "../src/tools/add-comment";
+import { closeIssueTool } from "../src/tools/close-issue";
+import { listCommitsTool } from "../src/tools/list-commits";
+
 
 function fakeGithub(): GitHubOperations {
     return {
@@ -14,6 +18,9 @@ function fakeGithub(): GitHubOperations {
         createRepository: vi.fn(),
         createCommit: vi.fn(),
         listIssues: vi.fn(),
+        listCommits: vi.fn(),
+        closeIssue: vi.fn(),
+        addComment: vi.fn(),
     };
 }
 
@@ -134,5 +141,69 @@ describe("tools MCP", () => {
         const payload = JSON.parse(result.content[0].text);
         expect(payload.count).toBe(1);
         expect(payload.issues[0].number).toBe(7);
+    });
+    it("list_commits devuelve count y commits", async () => {
+        const github = fakeGithub();
+        vi.mocked(github.listCommits).mockResolvedValue([
+            {
+                sha: "abc123",
+                message: "feat: algo",
+                author: "Ranz00",
+                date: "2026-01-03T00:00:00Z",
+                htmlUrl: "https://github.com/commit/abc123",
+            },
+        ]);
+
+        const result = await listCommitsTool.handler(
+            { owner: "Ranz00", repo: "mcp-pruebas" },
+            context(github),
+        );
+        const payload = JSON.parse(result.content[0].text);
+
+        expect(payload.count).toBe(1);
+        expect(payload.commits[0].sha).toBe("abc123");
+    });
+
+    it("close_issue devuelve el issue cerrado", async () => {
+        const github = fakeGithub();
+        vi.mocked(github.closeIssue).mockResolvedValue({ ...issueInfo, state: "closed" });
+
+        const result = await closeIssueTool.handler(
+            { owner: "Ranz00", repo: "mcp-pruebas", issue_number: 7 },
+            context(github),
+        );
+        const payload = JSON.parse(result.content[0].text);
+
+        expect(result.isError).toBeUndefined();
+        expect(payload.state).toBe("closed");
+    });
+
+    it("add_comment_to_issue devuelve el comentario", async () => {
+        const github = fakeGithub();
+        vi.mocked(github.addComment).mockResolvedValue({
+            id: 1,
+            body: "Listo",
+            htmlUrl: "https://github.com/comment/1",
+            createdAt: "2026-01-04T00:00:00Z",
+        });
+
+        const result = await addCommentTool.handler(
+            { owner: "Ranz00", repo: "mcp-pruebas", issue_number: 7, body: "Listo" },
+            context(github),
+        );
+
+        expect(JSON.parse(result.content[0].text).body).toBe("Listo");
+    });
+
+    it("add_comment_to_issue rechaza un body vacío", async () => {
+        const github = fakeGithub();
+
+        const result = await addCommentTool.handler(
+            { owner: "Ranz00", repo: "mcp-pruebas", issue_number: 7, body: "  " },
+            context(github),
+        );
+
+        expect(result.isError).toBe(true);
+        expect(github.addComment).not.toHaveBeenCalled();
     });
 });

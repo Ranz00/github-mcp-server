@@ -1,15 +1,20 @@
 import type { Octokit } from "@octokit/rest";
 import { AppError, toAppError } from "../errors/index.js";
 import type {
+    AddCommentInput,
+    CloseIssueInput,
     CreateCommitInput,
     CreateIssueInput,
     CreateRepositoryInput,
+    ListCommitsInput,
     ListIssuesInput,
     ListRepositoriesInput,
 } from "../schemas/index.js";
 import type {
     CommitInfo,
+    CommitSummary,
     GitHubOperations,
+    IssueCommentInfo,
     IssueInfo,
     RepoInfo,
     RepositoryInfo,
@@ -245,6 +250,53 @@ export function createGitHubOperations(octokit: Octokit = createOctokit()): GitH
             return (data as GitHubIssue[])
                 .filter((issue) => !issue.pull_request)
                 .map(toIssueInfo);
+        },
+
+        async listCommits(input: ListCommitsInput): Promise<CommitSummary[]> {
+            const { data } = await withRetry(() =>
+                octokit.repos.listCommits({
+                    owner: input.owner,
+                    repo: input.repo,
+                    sha: input.branch,
+                    per_page: input.per_page,
+                }),
+            );
+
+            return data.map((commit) => ({
+                sha: commit.sha,
+                message: commit.commit.message,
+                author: commit.commit.author?.name ?? null,
+                date: commit.commit.author?.date ?? null,
+                htmlUrl: commit.html_url,
+            }));
+        },
+
+        async closeIssue(input: CloseIssueInput): Promise<IssueInfo> {
+            // Cerrar es un update del estado: GitHub lo trata como edición, no como borrado.
+            const { data } = await octokit.issues.update({
+                owner: input.owner,
+                repo: input.repo,
+                issue_number: input.issue_number,
+                state: "closed",
+            });
+
+            return toIssueInfo(data as GitHubIssue);
+        },
+
+        async addComment(input: AddCommentInput): Promise<IssueCommentInfo> {
+            const { data } = await octokit.issues.createComment({
+                owner: input.owner,
+                repo: input.repo,
+                issue_number: input.issue_number,
+                body: input.body,
+            });
+
+            return {
+                id: data.id,
+                body: data.body ?? "",
+                htmlUrl: data.html_url,
+                createdAt: data.created_at,
+            };
         },
     };
 }

@@ -109,18 +109,10 @@ Si Antigravity no encuentra `node`, usá la ruta absoluta al ejecutable de Node 
 | `create_repository` | Crea un repositorio nuevo | `name`, `description?`, `private?` | "Creá un repositorio privado llamado `mcp-demo`." |
 | `create_commit` | Crea o actualiza un archivo y lo commitea | `owner`, `repo`, `path`, `content`, `message`, `branch?` | "En `Ranz00/mcp-pruebas`, creá `docs/notas.md` con 'Notas de la defensa' y commitealo." |
 | `list_issues` | Lista issues, sin pull requests | `owner`, `repo`, `state?`, `labels?`, `per_page?`, `page?` | "Mostrame los issues abiertos de `Ranz00/mcp-pruebas`." |
-| `health` | Reporta estado, uptime y timestamp del server | ninguno | "¿Está vivo el server?" |
-
-## Observabilidad (DX)
-
-Cada llamada a una tool genera dos líneas JSON en `stderr`:
-
-- `tool_call`: al entrar, con `tool` y `requestId`.
-- `tool_result`: al salir, con `tool`, `requestId` y `durationMs`.
-
-El `requestId` viaja también al handler y a los errores, así una falla se puede
-correlacionar con su request. `LOG_LEVEL` (`debug`, `info`, `warn`, `error`) filtra
-la salida; los logs nunca van a `stdout` porque ese canal es el JSON-RPC.
+| `list_commits` | Lista commits recientes de un repo | `owner`, `repo`, `branch?`, `per_page?` | "Mostrame los últimos commits de `Ranz00/mcp-pruebas`." |
+| `close_issue` | Cierra un issue existente | `owner`, `repo`, `issue_number` | "Cerrá el issue 7 de `Ranz00/mcp-pruebas`." |
+| `add_comment_to_issue` | Comenta en un issue | `owner`, `repo`, `issue_number`, `body` | "Comentá en el issue 7 que ya está resuelto." |
+| `health` | Estado, uptime y timestamp del server | ninguno | "¿Está vivo el server?" |
 
 ## Arquitectura
 

@@ -6,6 +6,9 @@ import type {
     CreateRepositoryInput,
     ListIssuesInput,
     ListRepositoriesInput,
+    AddCommentInput,
+    CloseIssueInput,
+    ListCommitsInput,
 } from "./schemas/index.js";
 
 // DTO = Data Transfer Object.
@@ -48,6 +51,21 @@ export interface CommitInfo {
     path: string;
 }
 
+export interface CommitSummary {
+    sha: string;
+    message: string;
+    author: string | null;
+    date: string | null;
+    htmlUrl: string;
+}
+
+export interface IssueCommentInfo {
+    id: number;
+    body: string;
+    htmlUrl: string;
+    createdAt: string;
+}
+
 // Contrato entre las tools y GitHub.
 // Las tools dependen de esta interfaz, no de Octokit: en los tests inyectamos
 // un objeto falso y no hacemos ninguna llamada real a GitHub.
@@ -57,6 +75,9 @@ export interface GitHubOperations {
     createRepository(input: CreateRepositoryInput): Promise<RepositoryInfo>;
     createCommit(input: CreateCommitInput): Promise<CommitInfo>;
     listIssues(input: ListIssuesInput): Promise<IssueInfo[]>;
+    listCommits(input: ListCommitsInput): Promise<CommitSummary[]>;
+    closeIssue(input: CloseIssueInput): Promise<IssueInfo>;
+    addComment(input: AddCommentInput): Promise<IssueCommentInfo>;
 }
 
 export interface McpToolDefinition {

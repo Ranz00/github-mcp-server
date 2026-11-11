@@ -93,13 +93,47 @@ export const ListIssuesSchema = z.object({
 
 export const HealthSchema = z.object({});
 
+// Listar commits de una rama.
+// `branch` es opcional: si no viene, GitHub usa la rama por defecto.
+export const ListCommitsSchema = z.object({
+    owner: z.string().min(1).describe("Dueño del repositorio"),
+    repo: z.string().min(1).describe("Nombre del repositorio"),
+    branch: z.string().optional().describe("Rama a revisar; por defecto la principal"),
+    per_page: z
+        .number()
+        .int()
+        .min(1)
+        .max(100)
+        .default(10)
+        .describe("Cantidad de commits (1-100)"),
+});
+
+// Cerrar un issue.
+// `issue_number` es el número de la URL del issue, no un id interno.
+export const CloseIssueSchema = z.object({
+    owner: z.string().min(1).describe("Dueño del repositorio"),
+    repo: z.string().min(1).describe("Nombre del repositorio"),
+    issue_number: z.number().int().min(1).describe("Número del issue"),
+});
+
+// Comentar un issue.
+// `trim` + `min(1)` evita que un comentario vacío llegue a GitHub.
+export const AddCommentSchema = z.object({
+    owner: z.string().min(1).describe("Dueño del repositorio"),
+    repo: z.string().min(1).describe("Nombre del repositorio"),
+    issue_number: z.number().int().min(1).describe("Número del issue"),
+    body: z.string().trim().min(1).max(65_000).describe("Texto del comentario"),
+});
+
 // Tipos inferidos: no escribimos interfaces aparte.
 // Si cambia el schema, el tipo cambia solo.
+export type ListCommitsInput = z.infer<typeof ListCommitsSchema>;
+export type CloseIssueInput = z.infer<typeof CloseIssueSchema>;
+export type AddCommentInput = z.infer<typeof AddCommentSchema>;
 export type ListRepositoriesInput = z.infer<typeof ListRepositoriesSchema>;
 export type CreateIssueInput = z.infer<typeof CreateIssueSchema>;
 export type CreateCommitInput = z.infer<typeof CreateCommitSchema>;
-export type CreateRepositoryInput = z.infer<typeof CreateRepositorySchema>;
-export type ListIssuesInput = z.infer<typeof ListIssuesSchema>;
+export type CreateRepositoryInput = z.infer<typeof CreateRepositorySchema>; export type ListIssuesInput = z.infer<typeof ListIssuesSchema>;
 export type HealthInput = z.infer<typeof HealthSchema>;
 
 // Convierte el schema de Zod al JSON Schema que ve el LLM.
