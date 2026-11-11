@@ -1,6 +1,6 @@
 # GitHub MCP Server
 
-MCP server en TypeScript que conecta un agente (Antigravity) con la API de GitHub. Expone tools para listar repositorios, crear issues, crear repositorios, crear commits y listar issues.
+MCP server en TypeScript que conecta un agente (Antigravity) con la API de GitHub. Expone **9 tools**: las 5 base (`list_repositories`, `create_issue`, `create_repository`, `create_commit`, `list_issues`), 3 avanzadas (`list_commits`, `close_issue`, `add_comment_to_issue`) y `health`.
 
 ## Qué resuelve
 
@@ -31,7 +31,8 @@ npm install
 Creá el `.env` a partir del ejemplo:
 
 ```bash
-copy .env.example .env
+cp .env.example .env     # macOS / Linux
+copy .env.example .env   # Windows (CMD)
 ```
 
 En Windows con PowerShell también sirve:
@@ -56,7 +57,7 @@ LOG_LEVEL=info
 3. Marcá el scope `repo`.
 4. Copiá el token en `.env`.
 
-Para las 5 tools, el token clásico con `repo` alcanza. Si usás fine-grained, habilitá Contents, Issues y Administration según la operación; para la defensa, el clásico es el camino simple.
+Para las 9 tools, el token clásico con `repo` alcanza. `user` y `admin:org` no los usa ninguna tool: pedirlos amplía el daño si el token se filtra. Si usás fine-grained, habilitá Contents, Issues y Administration según la operación.
 
 ## Build y ejecución
 
@@ -80,6 +81,15 @@ npm run inspector
 ```
 
 El Inspector abre el catálogo de tools. Ahí podés probar cada schema sin Antigravity.
+
+## Docs y menú CLI
+
+```bash
+npm run docs   # genera TOOLS.md desde los schemas Zod
+npm run menu   # menú interactivo: elegís una tool y completás los campos
+```
+
+`npm run menu -- --tool health --args '{}'` ejecuta una tool sin prompts: sirve para scripts y para la demo.
 
 ## Antigravity
 
@@ -122,9 +132,8 @@ Cada llamada a una tool genera dos líneas JSON en `stderr`:
 - `tool_result`: al salir, con `tool`, `requestId` y `durationMs`.
 
 El `requestId` viaja también al handler y a los errores, así una falla se puede
-correlacionar con su request. `LOG_LEVEL` (`debug`, `info`, `warn`, `error`) filtra
+correlacionar con su request. `LOG_LEVEL` (`debug`, `info`, `warn`, `error`, `silent`) filtra
 la salida; los logs nunca van a `stdout` porque ese canal es el JSON-RPC.
-
 
 ## Arquitectura
 
@@ -167,6 +176,15 @@ Los tests no llaman a GitHub. Inyectan un Octokit falso o un `GitHubOperations` 
 - input inválido sin llamar a GitHub.
 
 ## Errores
+
+La consigna pide distinguir `ValidationError`, `GitHubAPIError`, `AuthenticationError` y `NetworkError`. Se implementan como `code` de una sola `AppError`:
+
+| Consigna | `code` |
+|---|---|
+| `ValidationError` | `VALIDATION_ERROR` |
+| `GitHubAPIError` | `GITHUB_ERROR` |
+| `AuthenticationError` | `AUTH_ERROR` / `FORBIDDEN` |
+| `NetworkError` | `NETWORK_ERROR` |
 
 | HTTP | Código | ¿Reintentar? |
 |---|---|---|

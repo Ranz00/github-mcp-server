@@ -14,6 +14,10 @@ export type ErrorCode =
     | "NETWORK_ERROR"
     | "UNKNOWN_ERROR";
 
+// La consigna pide cuatro tipos de error. Se representan con `code`:
+// ValidationError -> VALIDATION_ERROR · GitHubAPIError -> GITHUB_ERROR
+// AuthenticationError -> AUTH_ERROR/FORBIDDEN · NetworkError -> NETWORK_ERROR
+// Una sola clase evita duplicar el manejo; `retryable` marca los transitorios.
 export interface AppErrorOptions {
     code: ErrorCode;
     message: string;
