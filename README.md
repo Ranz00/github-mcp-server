@@ -114,6 +114,18 @@ Si Antigravity no encuentra `node`, usá la ruta absoluta al ejecutable de Node 
 | `add_comment_to_issue` | Comenta en un issue | `owner`, `repo`, `issue_number`, `body` | "Comentá en el issue 7 que ya está resuelto." |
 | `health` | Estado, uptime y timestamp del server | ninguno | "¿Está vivo el server?" |
 
+## Observabilidad (DX)
+
+Cada llamada a una tool genera dos líneas JSON en `stderr`:
+
+- `tool_call`: al entrar, con `tool` y `requestId`.
+- `tool_result`: al salir, con `tool`, `requestId` y `durationMs`.
+
+El `requestId` viaja también al handler y a los errores, así una falla se puede
+correlacionar con su request. `LOG_LEVEL` (`debug`, `info`, `warn`, `error`) filtra
+la salida; los logs nunca van a `stdout` porque ese canal es el JSON-RPC.
+
+
 ## Arquitectura
 
 ```text

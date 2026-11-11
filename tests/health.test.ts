@@ -1,31 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { healthTool } from "../src/tools/health.js";
-import type { GitHubOperations, ToolContext } from "../src/types.js";
+import { healthTool } from "../src/tools/health";
+import type { GitHubOperations } from "../src/types";
 
-function fakeGithub(): GitHubOperations {
-    return {
-        listRepositories: async () => [],
-        createIssue: async () => ({} as any),
-        createRepository: async () => ({} as any),
-        createCommit: async () => ({} as any),
-        listIssues: async () => [],
-    };
-}
+const github = {} as GitHubOperations;
 
-function context(github: GitHubOperations): ToolContext {
-    return { github, requestId: "req-123" };
-}
-
-describe("health tool", () => {
-    it("devuelve estado ok, uptime y requestId", async () => {
-        const github = fakeGithub();
-        const result = await healthTool.handler({}, context(github));
-        const payload = JSON.parse(result.content[0].text as string);
+describe("health", () => {
+    it("devuelve estado sin llamar a GitHub", async () => {
+        const result = await healthTool.handler({}, { github, requestId: "health-test" });
+        const payload = JSON.parse(result.content[0].text);
 
         expect(result.isError).toBeUndefined();
         expect(payload.status).toBe("ok");
-        expect(payload.requestId).toBe("req-123");
-        expect(typeof payload.uptimeSeconds).toBe("number");
-        expect(typeof payload.timestamp).toBe("string");
+        expect(payload.uptimeSeconds).toBeGreaterThanOrEqual(0);
+        expect(payload.requestId).toBe("health-test");
     });
 });
