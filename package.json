@@ -13,6 +13,8 @@
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
+    "docs": "tsx scripts/generate-docs.ts",
+    "menu": "tsx scripts/menu.ts",
     "inspector": "npx -y @modelcontextprotocol/inspector node dist/server.js"
   },
   "license": "MIT",
