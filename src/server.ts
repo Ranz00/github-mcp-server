@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { fail } from "./errors/index.js";
@@ -5,6 +6,7 @@ import { createGitHubOperations } from "./github/operations.js";
 import { createCommitTool } from "./tools/create-commit.js";
 import { createIssueTool } from "./tools/create-issue.js";
 import { createRepositoryTool } from "./tools/create-repository.js";
+import { healthTool } from "./tools/health.js";
 import { listIssuesTool } from "./tools/list-issues.js";
 import { listRepositoriesTool } from "./tools/list-repositories.js";
 import type { McpTool } from "./types.js";
@@ -20,6 +22,7 @@ const tools: McpTool[] = [
     createRepositoryTool,
     createCommitTool,
     listIssuesTool,
+    healthTool,
 ];
 
 for (const tool of tools) {
@@ -31,12 +34,22 @@ for (const tool of tools) {
             inputSchema: tool.schema,
         },
         async (input) => {
-            log("info", "tool_call", { tool: tool.definition.name });
+            // requestId correlaciona el log de entrada con el de salida.
+            const requestId = randomUUID();
+            const startedAt = Date.now();
+
+            log("info", "tool_call", { tool: tool.definition.name, requestId });
 
             try {
-                return await tool.handler(input, { github });
+                return await tool.handler(input, { github, requestId });
             } catch (error) {
-                return fail(error);
+                return fail(error, requestId);
+            } finally {
+                log("info", "tool_result", {
+                    tool: tool.definition.name,
+                    requestId,
+                    durationMs: Date.now() - startedAt,
+                });
             }
         },
     );

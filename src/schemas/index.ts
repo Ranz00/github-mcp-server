@@ -91,6 +91,8 @@ export const ListIssuesSchema = z.object({
     page: z.number().int().min(1).default(1).describe("Número de página"),
 });
 
+export const HealthSchema = z.object({});
+
 // Tipos inferidos: no escribimos interfaces aparte.
 // Si cambia el schema, el tipo cambia solo.
 export type ListRepositoriesInput = z.infer<typeof ListRepositoriesSchema>;
@@ -98,6 +100,7 @@ export type CreateIssueInput = z.infer<typeof CreateIssueSchema>;
 export type CreateCommitInput = z.infer<typeof CreateCommitSchema>;
 export type CreateRepositoryInput = z.infer<typeof CreateRepositorySchema>;
 export type ListIssuesInput = z.infer<typeof ListIssuesSchema>;
+export type HealthInput = z.infer<typeof HealthSchema>;
 
 // Convierte el schema de Zod al JSON Schema que ve el LLM.
 // `io: "input"` hace que los defaults no aparezcan como obligatorios.
