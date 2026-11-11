@@ -29,7 +29,7 @@ if (toolFlag !== -1) {
     process.exit(0);
 }
 
-type Property = { type?: string; description?: string; default?: unknown };
+type Property = { type?: string; description?: string; default?: unknown; enum?: unknown[] };
 type Schema = { properties?: Record<string, Property>; required?: string[] };
 
 async function ask(text: string): Promise<string | null> {
@@ -38,6 +38,13 @@ async function ask(text: string): Promise<string | null> {
     } catch {
         return null; // stdin cerrado (EOF)
     }
+}
+
+function coerce(raw: string, prop: Property): unknown {
+    if (prop.type === "number" || prop.type === "integer") return Number(raw);
+    if (prop.type === "boolean") return raw === "true";
+    if (prop.type === "array") return raw.split(",").map((item) => item.trim());
+    return raw;
 }
 
 let running = true;
@@ -66,28 +73,48 @@ while (running) {
     for (const [name, prop] of Object.entries(props)) {
         const isRequired = required.includes(name);
         const hint = prop.description ? ` — ${prop.description}` : "";
-        const def = prop.default !== undefined ? ` [${JSON.stringify(prop.default)}]` : "";
-        const raw = await ask(`  ${name}${isRequired ? " *" : ""}${hint}${def}: `);
+        const def = prop.default !== undefined ? ` [${prop.default}]` : "";
+        let value: unknown;
 
-        if (raw === null) {
-            running = false;
+        // Repetimos la pregunta hasta que el valor sea válido.
+        while (true) {
+            const raw = await ask(`  ${name}${isRequired ? " *" : ""}${hint}${def}: `);
+
+            if (raw === null) {
+                running = false;
+                break;
+            }
+
+            if (raw === "") {
+                if (prop.default !== undefined) {
+                    value = prop.default;
+                    break;
+                }
+                if (isRequired) {
+                    console.log(`  ! ${name} es obligatorio`);
+                    continue;
+                }
+                break;
+            }
+
+            const parsed = coerce(raw, prop);
+
+            if (prop.enum && !prop.enum.includes(parsed)) {
+                console.log(`  ! ${name} debe ser uno de: ${prop.enum.join(", ")}`);
+                continue;
+            }
+
+            if ((prop.type === "number" || prop.type === "integer") && Number.isNaN(parsed)) {
+                console.log(`  ! ${name} debe ser un número`);
+                continue;
+            }
+
+            value = parsed;
             break;
         }
 
-        if (raw === "") {
-            if (prop.default !== undefined) args[name] = prop.default;
-            else if (isRequired) console.log(`  ! ${name} es obligatorio`);
-            continue;
-        }
-
-        args[name] =
-            prop.type === "number"
-                ? Number(raw)
-                : prop.type === "boolean"
-                  ? raw === "true"
-                  : prop.type === "array"
-                    ? raw.split(",").map((item) => item.trim())
-                    : raw;
+        if (!running) break;
+        if (value !== undefined) args[name] = value;
     }
 
     if (!running) break;
